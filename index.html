@@ -41,20 +41,50 @@
     <!-- Kalp Efektleri -->
     <div class="hearts-container"></div>
     
+    <!-- Mobil için görünmez overlay - müzik başlatmak için -->
+    <div id="musicTrigger" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: transparent; cursor: pointer;"></div>
+    
     <!-- Müziği hemen başlatmayı dene -->
     <script>
         // Sayfa yüklenir yüklenmez müziği başlatmayı dene
         (function() {
             const audio = document.getElementById('backgroundMusic');
+            const trigger = document.getElementById('musicTrigger');
+            
             if (audio) {
                 audio.volume = 0.7;
+                
+                // Müzik başlatma fonksiyonu
+                function startAudio() {
+                    if (audio.paused) {
+                        audio.play().then(function() {
+                            // Başarılı oldu, overlay'i kaldır
+                            if (trigger) {
+                                trigger.style.display = 'none';
+                            }
+                        }).catch(function() {
+                            // Başarısız, overlay'i göster ki kullanıcı tıklasın
+                            if (trigger) {
+                                trigger.style.display = 'block';
+                            }
+                        });
+                    }
+                }
+                
+                // Hemen başlatmayı dene
                 audio.muted = true;
                 audio.play().then(function() {
                     setTimeout(function() {
                         audio.muted = false;
+                        if (trigger) trigger.style.display = 'none';
                     }, 100);
                 }).catch(function() {
                     audio.muted = false;
+                    // Overlay'e tıklama eventi ekle
+                    if (trigger) {
+                        trigger.addEventListener('click', startAudio, { once: true });
+                        trigger.addEventListener('touchstart', startAudio, { once: true });
+                    }
                 });
             }
         })();

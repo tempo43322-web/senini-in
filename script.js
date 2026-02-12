@@ -5,6 +5,8 @@ let musicStarted = false;
 // Audio elementini hazırla ve müziği başlat
 function initAudio() {
     audio = document.getElementById('backgroundMusic');
+    const trigger = document.getElementById('musicTrigger');
+    
     if (!audio) {
         setTimeout(initAudio, 50);
         return;
@@ -12,6 +14,14 @@ function initAudio() {
     
     audio.volume = 0.7;
     audio.preload = 'auto';
+    
+    // Müzik başladığında overlay'i kaldır
+    audio.addEventListener('play', function() {
+        musicStarted = true;
+        if (trigger) {
+            trigger.style.display = 'none';
+        }
+    });
     
     // Müziği başlat - önce muted olarak başlat, sonra unmute et
     function startMusic() {
@@ -28,6 +38,7 @@ function initAudio() {
                     if (audio) {
                         audio.muted = false;
                         musicStarted = true;
+                        if (trigger) trigger.style.display = 'none';
                         console.log('Müzik başladı');
                     }
                 }, 100);
@@ -36,9 +47,14 @@ function initAudio() {
                 audio.muted = false;
                 audio.play().then(function() {
                     musicStarted = true;
+                    if (trigger) trigger.style.display = 'none';
                     console.log('Müzik başladı (normal)');
                 }).catch(function(err) {
                     console.log('Müzik başlatılamadı');
+                    // Overlay'i göster
+                    if (trigger) {
+                        trigger.style.display = 'block';
+                    }
                 });
             });
         }
@@ -52,6 +68,20 @@ function initAudio() {
         audio.currentTime = 0;
         audio.play();
     });
+    
+    // Overlay'e tıklama eventi ekle
+    if (trigger) {
+        trigger.addEventListener('click', function() {
+            if (audio && audio.paused) {
+                audio.play();
+            }
+        });
+        trigger.addEventListener('touchstart', function() {
+            if (audio && audio.paused) {
+                audio.play();
+            }
+        }, { passive: true });
+    }
 }
 
 // Sayfa yüklendiğinde müziği başlat
@@ -78,36 +108,56 @@ window.addEventListener('load', function() {
         }
     }
     
-    // Mobil için daha agresif deneme
-    const attempts = isMobile ? [50, 100, 200, 400, 800, 1200] : [50, 200, 500, 1000];
+    // Mobil için çok daha agresif deneme
+    const attempts = isMobile ? [10, 50, 100, 200, 300, 500, 800, 1200, 2000] : [50, 200, 500, 1000];
     
     attempts.forEach(function(delay) {
         setTimeout(tryStartMusic, delay);
     });
     
-    // Mobil için touch event simülasyonu
+    // Mobil için hemen touch event simülasyonu
     if (isMobile) {
+        // Hemen bir kez dene
         setTimeout(function() {
             if (audio && audio.paused && !musicStarted) {
-                try {
-                    const touchEvent = new TouchEvent('touchstart', {
-                        bubbles: true,
-                        cancelable: true
-                    });
-                    document.body.dispatchEvent(touchEvent);
-                } catch(e) {
-                    // Fallback: normal click event
+                // Direkt play dene
+                audio.play().then(function() {
+                    musicStarted = true;
+                }).catch(function() {
+                    // Başarısız oldu, touch event simüle et
                     try {
-                        const clickEvent = new MouseEvent('click', {
-                            view: window,
-                            bubbles: true,
-                            cancelable: true
-                        });
-                        document.body.dispatchEvent(clickEvent);
-                    } catch(e2) {}
-                }
+                        // Body'ye programatik touch event gönder
+                        const touch = document.createTouch(window, document.body, 0, 0, 0, 0);
+                        const touchList = document.createTouchList(touch);
+                        const touchEvent = document.createEvent('TouchEvent');
+                        touchEvent.initTouchEvent('touchstart', true, true, window, 0, 
+                            false, false, false, false, touchList, touchList, touchList);
+                        document.body.dispatchEvent(touchEvent);
+                    } catch(e) {
+                        // Fallback: normal click event
+                        try {
+                            const clickEvent = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            document.body.dispatchEvent(clickEvent);
+                        } catch(e2) {}
+                    }
+                });
             }
-        }, 1000);
+        }, 100);
+        
+        // Birkaç kez daha dene
+        [300, 600, 1000, 1500, 2000].forEach(function(delay) {
+            setTimeout(function() {
+                if (audio && audio.paused && !musicStarted) {
+                    audio.play().then(function() {
+                        musicStarted = true;
+                    }).catch(function() {});
+                }
+            }, delay);
+        });
     }
 });
 
@@ -159,8 +209,8 @@ document.addEventListener('click', function() {
     }
 }, { once: false });
 
-// Touch event'leri - mobil için öncelikli
-document.addEventListener('touchstart', function() {
+// Touch event'leri - mobil için öncelikli (çok agresif)
+document.addEventListener('touchstart', function(e) {
     if (audio && audio.paused && !musicStarted) {
         audio.play().then(function() {
             musicStarted = true;
@@ -168,13 +218,22 @@ document.addEventListener('touchstart', function() {
     }
 }, { once: false, passive: true });
 
-document.addEventListener('touchend', function() {
+document.addEventListener('touchend', function(e) {
     if (audio && audio.paused && !musicStarted) {
         audio.play().then(function() {
             musicStarted = true;
         }).catch(function() {});
     }
 }, { once: false, passive: true });
+
+// Touchmove ile de başlat
+document.addEventListener('touchmove', function(e) {
+    if (audio && audio.paused && !musicStarted) {
+        audio.play().then(function() {
+            musicStarted = true;
+        }).catch(function() {});
+    }
+}, { once: true, passive: true });
 
 // Mobil için scroll event'i ile de başlat
 let scrollStarted = false;

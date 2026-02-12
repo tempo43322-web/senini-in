@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Sevgililer Günü</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background"></div>
+    
+    <!-- Müzik -->
+    <audio id="backgroundMusic" autoplay loop preload="auto" playsinline>
+        <source src="Sound/Careless Whisper - Intro loop ( Saxophone only).mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Emoji'ler - Sol ve Sağ -->
+    <div class="emoji-container">
+        <img src="İmg/Emote.png" alt="Emoji" class="emoji emoji-left" id="emojiLeft">
+        <img src="İmg/Emote.png" alt="Emoji" class="emoji emoji-right" id="emojiRight">
+        <img src="İmg/Emote.png" alt="Emoji" class="emoji emoji-left-2" id="emojiLeft2">
+        <img src="İmg/Emote.png" alt="Emoji" class="emoji emoji-right-2" id="emojiRight2">
+    </div>
+    
+    <!-- Ana Başlık -->
+    <div class="main-title-container">
+        <h1 class="main-title" id="mainTitle">Sevgililer günün kutlu olsun</h1>
+    </div>
+    
+    <!-- Alt Yazı -->
+    <div class="bottom-text-container">
+        <h2 class="bottom-text" id="bottomText">Bu 14 şubatı benimle geçirirmisin?</h2>
+    </div>
+    
+    <!-- Kalp Efektleri -->
+    <div class="hearts-container"></div>
+    
+    <!-- Müziği hemen başlatmayı dene -->
+    <script>
+        // Sayfa yüklenir yüklenmez müziği başlatmayı dene
+        (function() {
+            const audio = document.getElementById('backgroundMusic');
+            if (audio) {
+                audio.volume = 0.7;
+                audio.muted = true;
+                audio.play().then(function() {
+                    setTimeout(function() {
+                        audio.muted = false;
+                    }, 100);
+                }).catch(function() {
+                    audio.muted = false;
+                });
+            }
+        })();
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
